@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.utils import get
 import asyncio, os, aiohttp, youtube_dl
 import random
+import json
 
 load_dotenv()
 
@@ -13,11 +14,12 @@ statelist = ('states/al.png', 'states/ak.png', 'states/az.png', 'states/ar.png',
 stateguesses = ('alab', 'alas', 'ariz', 'arka', 'cali', 'colo', 'conn', 'dela', 'flor', 'geor', 'haw', 'ida', 'illi', 'indi', 'iowa', 'kans', 'kent', 'louis', 'main', 'mary', 'mass', 'mich', 'minn', 'missi', 'misso', 'mont', 'nebr', 'nevad', 'new ham', 'new jer', 'new mex', 'new yor', 'north car', 'north dak', 'ohio', 'okla', 'oreg', 'pennsy', 'rhod', 'south car', 'south dak', 'tenn', 'texas', 'utah', 'verm', 'virg', 'washi', 'west vir', 'wisco', 'wyom')
 stateanswers = ('Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming')
 
-
+dict = {}
+trophy = 'https://library.kissclipart.com/20180923/ouq/kissclipart-transparent-trophy-cartoon-clipart-trophy-clip-art-ebb7c5fad5a04dee.jpg'
 
 @client.event
 async def on_ready():
-    print("GeoBot is online.\n")
+    print("GeoBot is online g.\n")
 
 
 botToken = os.getenv("TOKEN")
@@ -52,6 +54,19 @@ async def on_message(message):
         if (author != client.user):
             print('On '+dateshort+'\tat '+timeshort+',\t'+author+'  \tsaid\t"'+msg+'"')"""
 
+
+@client.command()
+async def sb(ctx):
+    dict = json.load(open('scores'))
+
+    embedVar = discord.Embed(title='Scoreboard', color=0x00ff00)
+    embedVar.set_thumbnail(url=trophy)
+    for user, score in dict.items():
+        embedVar.add_field(name=f"{user}", value=f"{score} points", inline=False)
+
+    await ctx.send(embed=embedVar)
+
+
 @client.command()
 async def helpme(ctx):
     embedV = discord.Embed(title="GeoBot Help", description="List of Geobot's commands (prefix is '#')", color=0x30A6EB)
@@ -68,6 +83,7 @@ async def states(message):
     alive = True
     update = True
     score = 0
+    dict = json.load(open('scores'))
     def checkstate(msg):
         return msg.content.lower()
 
@@ -75,6 +91,7 @@ async def states(message):
         return msg.channel
 
     while (alive):
+
 
         correctAns = (stateguesses[a])
         correctAnswerFull = (stateanswers[a])
@@ -95,8 +112,16 @@ async def states(message):
             msg = await client.wait_for("message", check=checkstate, timeout=5)
             if msg.content.startswith(correctAns):
                 score += 1
+
+                if f'{msg.author}' in dict:
+                    dict[f'{msg.author}'] += score
+                else:
+                    dict.update({f'{msg.author}': 10})
+
+                json.dump(dict, open('scores', 'w'))
+
                 embedy = discord.Embed(title="Correct!", description=("Score = " + str(score)), color=0x00FF00)
-                embedy.set_image(url="attachment://image.png")
+                embedy.set_thumbnail(url="attachment://image.png")
                 await ctx.send(file=correct, embed=embedy)
                 a = random.randint(0, 49)
                 update = True
@@ -105,11 +130,10 @@ async def states(message):
                 embedn = discord.Embed(title="Incorrect!", description=("Game Over: Score = " + str(score)), color=0xFF0000)
                 embedn.add_field(name="Your Answer", value=(msg.content.lower()), inline=False)
                 embedn.add_field(name="Correct Answer", value=correctAnswerFull, inline=False)
-                embedn.set_image(url="attachment://image.png")
+                embedn.set_thumbnail(url="attachment://image.png")
                 await ctx.send(file=incorrect, embed=embedn)
                 a = random.randint(0, 49)
                 update = True
-                score = 0
                 alive = False
 
         except asyncio.TimeoutError:
@@ -117,7 +141,6 @@ async def states(message):
             embedt.add_field(name="Correct Answer", value=correctAnswerFull, inline=False)
             embedt.set_image(url="attachment://image.png")
             await ctx.send(file=timesup, embed=embedt)
-            score = 0
             a = random.randint(0, 49)
             update = True
             alive = False
@@ -144,10 +167,8 @@ async def play(ctx, url: str):
     voiceChannel = discord.utils.get(ctx.guild.voice_channels, name='Holding Cell')
     connected = False
 
-
     if not is_connect(ctx):
         await voiceChannel.connect()
-
 
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
 
@@ -182,6 +203,7 @@ async def leave(ctx):
     else:
         await ctx.send("{0.user} is not connected." .format(client))
 
+
 @client.command()
 async def joinback(ctx):
     voiceChannel = discord.utils.get(ctx.guild.voice_channels, name='Holding Cell')
@@ -215,7 +237,6 @@ async def stop(ctx):
     voice.stop()
 
 
-
 @client.command()
 async def secret(ctx):
     Logo = discord.File('GeoBot.png', filename="image.png")
@@ -223,7 +244,6 @@ async def secret(ctx):
     embedscrt.set_footer(text="This bot was made by the members of the Ass Car Alex Discord Server")
     embedscrt.set_image(url="attachment://image.png")
     await ctx.send(file=Logo, embed=embedscrt)
-
 
 
 
