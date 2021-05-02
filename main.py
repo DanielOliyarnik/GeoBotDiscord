@@ -17,7 +17,7 @@ stateanswers = ('Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Color
 
 @client.event
 async def on_ready():
-    print("GeoBot is online\n")
+    print("GeoBot is online.\n")
 
 
 botToken = os.getenv("TOKEN")
