@@ -139,7 +139,7 @@ async def states(message):
         except asyncio.TimeoutError:
             embedt = discord.Embed(title="Time's Up!!", description=("Game Over: Score = " + str(score)), color=0xFF7F00)
             embedt.add_field(name="Correct Answer", value=correctAnswerFull, inline=False)
-            embedt.set_image(url="attachment://image.png")
+            embedt.set_thumbnail(url="attachment://image.png")
             await ctx.send(file=timesup, embed=embedt)
             a = random.randint(0, 49)
             update = True
